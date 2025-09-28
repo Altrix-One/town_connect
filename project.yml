@@ -1,4 +1,8 @@
 name: TownConnect
+packages:
+  Supabase:
+    url: https://github.com/supabase/supabase-swift
+    majorVersion: 2.0.0
 options:
   deploymentTarget:
     iOS: "16.0"
@@ -20,7 +24,9 @@ targets:
     scheme:
       testTargets:
         - TownConnectTests
-    dependencies: []
+    dependencies:
+      - package: Supabase
+        product: Supabase
 
   TownConnectTests:
     type: bundle.unit-test
