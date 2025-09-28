@@ -39,6 +39,17 @@
          </BuildableReference>
       </MacroExpansion>
       <Testables>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "E04A17E64709FAE4A498D5A6"
+               BuildableName = "TownConnectTests.xctest"
+               BlueprintName = "TownConnectTests"
+               ReferencedContainer = "container:TownConnect.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
       <CommandLineArguments>
       </CommandLineArguments>

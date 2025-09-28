@@ -8,10 +8,6 @@ actor MockAPIService {
     private var invites: [Invite] = []
 
     init() {
-        seed()
-    }
-
-    private func seed() {
         let u1 = User(id: UUID(), username: "jay", fullName: "Jay Patel", bio: "Explorer of local events", interests: ["Hiking", "Music", "Tech"], avatarData: nil)
         let u2 = User(id: UUID(), username: "sam", fullName: "Sam Lee", bio: "Foodie & gamer", interests: ["Food", "Games"], avatarData: nil)
         let u3 = User(id: UUID(), username: "mia", fullName: "Mia Chen", bio: "Art & culture fan", interests: ["Art", "Culture"], avatarData: nil)

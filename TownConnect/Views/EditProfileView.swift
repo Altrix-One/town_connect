@@ -41,7 +41,7 @@ struct EditProfileView: View {
                 bio = user.bio
                 interestsText = user.interests.joined(separator: ", ")
             }
-            .onChange(of: selectedItem) { _, newValue in
+            .onChange(of: selectedItem) { newValue in
                 guard let newValue else { return }
                 Task {
                     if let data = try? await newValue.loadTransferable(type: Data.self) {

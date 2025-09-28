@@ -19,6 +19,7 @@
 		5ADFB5486153FA1388E5A89A /* Follow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26C1F6CB990EB70A16521F56 /* Follow.swift */; };
 		685E07F22FB5D9CA3A23F743 /* EventsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F4008EDBDDE4B7BB11A638E /* EventsViewModel.swift */; };
 		778B9A0215218A256FFE840A /* AppContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1371270C38A14F783D4E032B /* AppContainer.swift */; };
+		8145AFC77DD0BAC77C098820 /* MockAPIServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA5682C8AC791AD103742268 /* MockAPIServiceTests.swift */; };
 		8386BE765BE69EF1609943B5 /* EventsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A8E50185D9A3D8F7BB4A1F1 /* EventsView.swift */; };
 		8C9A7BC3EC98A85911CC9F3D /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 738D16B14BD6EFE17BE6FAC5 /* User.swift */; };
 		8FBF73C418928038CAADF520 /* Event.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11E973181AB36EDD525DFF48 /* Event.swift */; };
@@ -30,6 +31,16 @@
 		DFE5AE80553BCD32E4A65224 /* UserStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 685BB3B56CA8CECF8DE77C8E /* UserStore.swift */; };
 		F144FADAE90EA537C57ED9C6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9F86E1AE971E1F31892E5056 /* Assets.xcassets */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		5BDAC2F86A678934C7B022E3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 19879704394D8D31C47886FF /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A26E8435E3619BB434556E8E;
+			remoteInfo = TownConnect;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		0C968890208CFF3600F42B52 /* ExploreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreView.swift; sourceTree = "<group>"; };
@@ -46,6 +57,7 @@
 		2F4008EDBDDE4B7BB11A638E /* EventsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventsViewModel.swift; sourceTree = "<group>"; };
 		5ECA7B4F64DEDD1307A05990 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		64086F78059C72B6644ACC1C /* RootTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootTabView.swift; sourceTree = "<group>"; };
+		64C11C3056CA0E0E79A6A290 /* TownConnectTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = TownConnectTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		685BB3B56CA8CECF8DE77C8E /* UserStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserStore.swift; sourceTree = "<group>"; };
 		6A2774661D7FA32DF1A359F6 /* CalendarService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarService.swift; sourceTree = "<group>"; };
 		708A1B7FB748139C1B56C804 /* FeedViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedViewModel.swift; sourceTree = "<group>"; };
@@ -54,6 +66,7 @@
 		80502EA6FA8D3C0F98B339DE /* EventStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventStore.swift; sourceTree = "<group>"; };
 		9F86E1AE971E1F31892E5056 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A6DF43D3DEFE83F8235FCF75 /* TownConnectApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TownConnectApp.swift; sourceTree = "<group>"; };
+		CA5682C8AC791AD103742268 /* MockAPIServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockAPIServiceTests.swift; sourceTree = "<group>"; };
 		E2630E5668A39B0791EA5E57 /* TownConnect.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = TownConnect.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F5377F9E25EF38F4F5546309 /* EditProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfileView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -76,6 +89,14 @@
 				738D16B14BD6EFE17BE6FAC5 /* User.swift */,
 			);
 			path = Models;
+			sourceTree = "<group>";
+		};
+		3F5D060916A5F8A38B28F8AB /* TownConnectTests */ = {
+			isa = PBXGroup;
+			children = (
+				CA5682C8AC791AD103742268 /* MockAPIServiceTests.swift */,
+			);
+			path = TownConnectTests;
 			sourceTree = "<group>";
 		};
 		70400FB084C34DC72FE3000F /* ViewModels */ = {
@@ -102,6 +123,7 @@
 			isa = PBXGroup;
 			children = (
 				CFD1510174456B838D29A229 /* TownConnect */,
+				3F5D060916A5F8A38B28F8AB /* TownConnectTests */,
 				AA34CD98791F5772FED4D7F3 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -127,6 +149,7 @@
 			isa = PBXGroup;
 			children = (
 				E2630E5668A39B0791EA5E57 /* TownConnect.app */,
+				64C11C3056CA0E0E79A6A290 /* TownConnectTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -190,6 +213,24 @@
 			productReference = E2630E5668A39B0791EA5E57 /* TownConnect.app */;
 			productType = "com.apple.product-type.application";
 		};
+		E04A17E64709FAE4A498D5A6 /* TownConnectTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1C627B183D1A66C6E27FC1EE /* Build configuration list for PBXNativeTarget "TownConnectTests" */;
+			buildPhases = (
+				DEE8BF8186E79B98D62AD74E /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				C0CC20B8D13408E11D09610C /* PBXTargetDependency */,
+			);
+			name = TownConnectTests;
+			packageProductDependencies = (
+			);
+			productName = TownConnectTests;
+			productReference = 64C11C3056CA0E0E79A6A290 /* TownConnectTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -214,6 +255,7 @@
 			projectRoot = "";
 			targets = (
 				A26E8435E3619BB434556E8E /* TownConnect */,
+				E04A17E64709FAE4A498D5A6 /* TownConnectTests */,
 			);
 		};
 /* End PBXProject section */
@@ -230,6 +272,14 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		DEE8BF8186E79B98D62AD74E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8145AFC77DD0BAC77C098820 /* MockAPIServiceTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		F010164EC0E6F34B9C7E911F /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -259,6 +309,14 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		C0CC20B8D13408E11D09610C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A26E8435E3619BB434556E8E /* TownConnect */;
+			targetProxy = 5BDAC2F86A678934C7B022E3 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		911FBEC480427563C4219E4F /* Debug */ = {
@@ -357,6 +415,21 @@
 			};
 			name = Release;
 		};
+		E53CE46DF2E8DAECB0459132 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TownConnect.app/TownConnect";
+			};
+			name = Debug;
+		};
 		EE24F6DB92D9C394DC174A2F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -414,9 +487,33 @@
 			};
 			name = Release;
 		};
+		F69DB58903974BA8B8A22ECD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TownConnect.app/TownConnect";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		1C627B183D1A66C6E27FC1EE /* Build configuration list for PBXNativeTarget "TownConnectTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E53CE46DF2E8DAECB0459132 /* Debug */,
+				F69DB58903974BA8B8A22ECD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
 		B9F710C6E48624C95FDCB924 /* Build configuration list for PBXNativeTarget "TownConnect" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
