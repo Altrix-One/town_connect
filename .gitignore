@@ -1,0 +1,19 @@
+# Xcode
+DerivedData/
+build/
+*.xcworkspace/
+*.xcodeproj/project.xcworkspace/
+*.xcuserdatad/
+*.xcscmblueprint
+
+# SwiftPM
+.swiftpm/
+.build/
+
+# CocoaPods / Carthage (not used, just in case)
+Pods/
+Cartfile.resolved
+Carthage/
+
+# Misc
+.DS_Store
