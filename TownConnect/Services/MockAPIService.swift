@@ -6,6 +6,9 @@ actor MockAPIService {
     private var events: [Event] = []
     private var follows: [Follow] = []
     private var invites: [Invite] = []
+    private var reactions: [Reaction] = []
+    private var comments: [Comment] = []
+    private var eventPhotos: [EventPhoto] = []
 
     init() {
         let u1 = User(id: UUID(), username: "jay", fullName: "Jay Patel", bio: "Explorer of local events", interests: ["Hiking", "Music", "Tech"], avatarData: nil)
@@ -75,5 +78,87 @@ actor MockAPIService {
 
     func updateInvite(_ invite: Invite) async {
         if let idx = invites.firstIndex(where: { $0.id == invite.id }) { invites[idx] = invite }
+    }
+    
+    // RSVP & Attendance
+    func rsvpToEvent(eventId: UUID, userId: UUID, status: RSVPStatus) async {
+        // Update or create invite
+        if let existingInviteIndex = invites.firstIndex(where: { $0.eventId == eventId && $0.toUserId == userId }) {
+            invites[existingInviteIndex].status = status
+            invites[existingInviteIndex].updatedAt = Date()
+        } else {
+            // Create new invite/RSVP
+            let invite = Invite(
+                eventId: eventId,
+                fromUserId: events.first(where: { $0.id == eventId })?.hostId ?? UUID(),
+                toUserId: userId,
+                status: status
+            )
+            invites.append(invite)
+        }
+        
+        // Update event attendee list
+        if let eventIndex = events.firstIndex(where: { $0.id == eventId }) {
+            var event = events[eventIndex]
+            
+            if status == .accepted && !event.attendeeIds.contains(userId) {
+                event.attendeeIds.append(userId)
+            } else if status != .accepted && event.attendeeIds.contains(userId) {
+                event.attendeeIds.removeAll { $0 == userId }
+            }
+            
+            events[eventIndex] = event
+        }
+    }
+    
+    func getEventAttendees(eventId: UUID) async -> [User] {
+        guard let event = events.first(where: { $0.id == eventId }) else { return [] }
+        return users.filter { event.attendeeIds.contains($0.id) }
+    }
+    
+    func getUserRSVPStatus(eventId: UUID, userId: UUID) async -> RSVPStatus {
+        return invites.first { $0.eventId == eventId && $0.toUserId == userId }?.status ?? .invited
+    }
+    
+    // Reactions
+    func addReaction(_ reaction: Reaction) async {
+        // Remove any existing reaction from this user for this item
+        reactions.removeAll { $0.userId == reaction.userId && $0.eventId == reaction.eventId && $0.photoId == reaction.photoId && $0.commentId == reaction.commentId }
+        reactions.append(reaction)
+    }
+    
+    func removeReaction(userId: UUID, eventId: UUID? = nil, photoId: UUID? = nil, commentId: UUID? = nil) async {
+        reactions.removeAll { $0.userId == userId && $0.eventId == eventId && $0.photoId == photoId && $0.commentId == commentId }
+    }
+    
+    func getReactions(for eventId: UUID) async -> [Reaction] {
+        return reactions.filter { $0.eventId == eventId }
+    }
+    
+    // Comments
+    func addComment(_ comment: Comment) async {
+        comments.append(comment)
+    }
+    
+    func getComments(for eventId: UUID) async -> [Comment] {
+        return comments.filter { $0.eventId == eventId }.sorted { $0.createdAt < $1.createdAt }
+    }
+    
+    // Event Photos
+    func uploadEventPhoto(_ photo: EventPhoto) async {
+        eventPhotos.append(photo)
+        
+        // Update user photo count
+        if let userIndex = users.firstIndex(where: { $0.id == photo.userId }) {
+            users[userIndex].photoCount += 1
+        }
+    }
+    
+    func getEventPhotos(for eventId: UUID) async -> [EventPhoto] {
+        return eventPhotos.filter { $0.eventId == eventId && $0.isVisible }.sorted { $0.createdAt > $1.createdAt }
+    }
+    
+    func getUserPhotos(for userId: UUID) async -> [EventPhoto] {
+        return eventPhotos.filter { $0.userId == userId && $0.isVisible }.sorted { $0.createdAt > $1.createdAt }
     }
 }

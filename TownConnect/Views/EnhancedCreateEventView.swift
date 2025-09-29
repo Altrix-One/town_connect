@@ -52,10 +52,10 @@ struct EnhancedCreateEventView: View {
                 .ignoresSafeArea()
                 
                 ScrollView {
-                    VStack(spacing: DesignSystem.Spacing.xl) {
+                    VStack(spacing: DesignSystem.Spacing.xxl) {
                         // Progress indicator
                         ProgressIndicatorView(currentStep: currentStep, totalSteps: steps.count)
-                            .padding(.top, DesignSystem.Spacing.lg)
+                            .padding(.top, DesignSystem.Spacing.xl)
                         
                         // Step content
                         Group {
@@ -112,9 +112,10 @@ struct EnhancedCreateEventView: View {
                             onCreateEvent: createEvent,
                             isCreating: $isCreating
                         )
-                        .padding(.bottom, DesignSystem.Spacing.xl)
+                        .padding(.bottom, DesignSystem.Spacing.xxl)
                     }
                     .padding(.horizontal, DesignSystem.Spacing.xl)
+                    .padding(.bottom, DesignSystem.Spacing.lg)
                 }
             }
             .navigationTitle("Create Event")
@@ -224,13 +225,14 @@ struct BasicDetailsStep: View {
     @Binding var tags: String
     
     var body: some View {
-        VStack(spacing: DesignSystem.Spacing.lg) {
+        VStack(spacing: DesignSystem.Spacing.xl) {
             Text("Tell us about your event")
                 .font(DesignSystem.Typography.title2)
                 .foregroundColor(DesignSystem.Colors.text)
                 .multilineTextAlignment(.center)
+                .padding(.horizontal, DesignSystem.Spacing.md)
             
-            VStack(spacing: DesignSystem.Spacing.md) {
+            VStack(spacing: DesignSystem.Spacing.xl) {
                 // Title
                 MagicalTextField(
                     title: "Event Title",
@@ -252,14 +254,17 @@ struct BasicDetailsStep: View {
                         .lineLimit(4...8)
                 }
                 
-                // Date and time
-                HStack(spacing: DesignSystem.Spacing.md) {
+                // Date and time - Mobile optimized
+                VStack(spacing: DesignSystem.Spacing.md) {
                     VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
                         Text("Starts")
                             .font(DesignSystem.Typography.bodySemibold)
                             .foregroundColor(DesignSystem.Colors.text)
                         DatePicker("", selection: $startDate, displayedComponents: [.date, .hourAndMinute])
                             .labelsHidden()
+                            .datePickerStyle(.compact)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(DesignSystem.Spacing.md)
                             .modernCardStyle()
                     }
                     
@@ -269,6 +274,9 @@ struct BasicDetailsStep: View {
                             .foregroundColor(DesignSystem.Colors.text)
                         DatePicker("", selection: $endDate, displayedComponents: [.date, .hourAndMinute])
                             .labelsHidden()
+                            .datePickerStyle(.compact)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(DesignSystem.Spacing.md)
                             .modernCardStyle()
                     }
                 }

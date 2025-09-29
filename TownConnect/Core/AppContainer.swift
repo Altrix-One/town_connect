@@ -18,11 +18,9 @@ final class AppContainer {
     private func setupServices() {
         // Bootstrap stores based on auth state
         Task { @MainActor in
-            // Wait for auth state to be determined
-            if case .authenticated(let user) = authService.authStatus {
-                await userStore.bootstrapWithSupabase()
-                await eventStore.bootstrapWithSupabase(userStore: userStore)
-            }
+            // For development, always bootstrap with both Supabase and MockAPI fallback
+            await userStore.bootstrap(with: api)
+            await eventStore.bootstrap(with: api, userStore: userStore)
         }
     }
     
@@ -30,12 +28,15 @@ final class AppContainer {
         Task { @MainActor in
             switch authService.authStatus {
             case .authenticated:
-                await userStore.bootstrapWithSupabase()
-                await eventStore.bootstrapWithSupabase(userStore: userStore)
+                await userStore.bootstrap(with: api)
+                await eventStore.bootstrap(with: api, userStore: userStore)
             case .unauthenticated, .error:
                 // Clear stores when user signs out
                 userStore.reset()
                 eventStore.reset()
+                // Still bootstrap with mock data for development
+                await userStore.bootstrap(with: api)
+                await eventStore.bootstrap(with: api, userStore: userStore)
             case .onboarding, .authenticating, .emailVerificationRequired:
                 // Wait for authentication to complete
                 break

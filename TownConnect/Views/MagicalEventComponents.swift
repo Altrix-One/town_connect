@@ -29,17 +29,20 @@ struct MagicalTextField: View {
 struct MagicalTextFieldStyle: TextFieldStyle {
     func _body(configuration: TextField<Self._Label>) -> some View {
         configuration
-            .padding(DesignSystem.Spacing.md)
+            .font(DesignSystem.Typography.body)
+            .padding(.horizontal, DesignSystem.Spacing.lg)
+            .padding(.vertical, DesignSystem.Spacing.lg)
+            .frame(minHeight: 50)
             .background(
-                RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.md)
+                RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.lg)
                     .fill(DesignSystem.Colors.secondaryBackground)
                     .overlay(
-                        RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.md)
+                        RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.lg)
                             .stroke(DesignSystem.Colors.primary.opacity(0.3), lineWidth: 1)
                     )
             )
             .overlay(
-                RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.md)
+                RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.lg)
                     .stroke(
                         LinearGradient(
                             colors: [DesignSystem.Colors.primary, DesignSystem.Colors.primaryLight],
@@ -59,15 +62,15 @@ struct CategorySelector: View {
     @Binding var selectedCategory: EventCategory
     
     private let categories: [EventCategory] = EventCategory.allCases
-    private let columns = Array(repeating: GridItem(.flexible()), count: 2)
+    private let columns = Array(repeating: GridItem(.flexible(), spacing: DesignSystem.Spacing.md), count: 2)
     
     var body: some View {
-        VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
+        VStack(alignment: .leading, spacing: DesignSystem.Spacing.md) {
             Text("Category")
                 .font(DesignSystem.Typography.bodySemibold)
                 .foregroundColor(DesignSystem.Colors.text)
             
-            LazyVGrid(columns: columns, spacing: DesignSystem.Spacing.sm) {
+            LazyVGrid(columns: columns, spacing: DesignSystem.Spacing.md) {
                 ForEach(categories, id: \.self) { category in
                     CategoryButton(
                         category: category,
@@ -90,17 +93,25 @@ struct CategoryButton: View {
     
     var body: some View {
         Button(action: action) {
-            HStack {
+            HStack(spacing: DesignSystem.Spacing.sm) {
                 Image(systemName: iconForCategory(category))
+                    .font(.system(size: 16, weight: .medium))
                     .foregroundColor(isSelected ? .white : DesignSystem.Colors.primary)
+                    .frame(width: 20)
+                
                 Text(category.rawValue.capitalized)
                     .font(DesignSystem.Typography.bodyMedium)
                     .foregroundColor(isSelected ? .white : DesignSystem.Colors.text)
-                Spacer()
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                
+                Spacer(minLength: 0)
             }
-            .padding(DesignSystem.Spacing.md)
+            .padding(.horizontal, DesignSystem.Spacing.md)
+            .padding(.vertical, DesignSystem.Spacing.lg)
+            .frame(minHeight: 50)
             .background(
-                RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.md)
+                RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.lg)
                     .fill(
                         isSelected ?
                         LinearGradient(
@@ -115,13 +126,14 @@ struct CategoryButton: View {
                         )
                     )
                     .overlay(
-                        RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.md)
+                        RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.lg)
                             .stroke(DesignSystem.Colors.primary.opacity(0.3), lineWidth: 1)
                             .opacity(isSelected ? 0 : 1)
                     )
             )
         }
-        .scaleEffect(isSelected ? 1.05 : 1.0)
+        .buttonStyle(PlainButtonStyle())
+        .scaleEffect(isSelected ? 1.02 : 1.0)
         .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isSelected)
     }
     

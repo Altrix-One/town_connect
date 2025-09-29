@@ -1,208 +1,6 @@
 import SwiftUI
 import PhotosUI
 
-struct EventDetailView: View {
-    @EnvironmentObject var eventStore: EventStore
-    @EnvironmentObject var userStore: UserStore
-
-    let event: Event
-    
-    // State variables
-    @State private var showingCalendarAlert = false
-    @State private var calendarError: String?
-    @State private var userRSVPStatus: RSVPStatus = .invited
-    @State private var attendees: [User] = []
-    @State private var reactions: [Reaction] = []
-    @State private var comments: [Comment] = []
-    @State private var eventPhotos: [EventPhoto] = []
-    @State private var showingComments = false
-    @State private var newComment = ""
-    @State private var showingAttendeeList = false
-    @State private var isLoading = false
-    
-    var host: User? { userStore.users.first(where: { $0.id == event.hostId }) }
-    var currentUser: User? { userStore.currentUser }
-    
-    var attendeeCount: Int { event.attendeeIds.count }
-    var notAttendingCount: Int {
-        // Calculate based on invites with declined/maybe status
-        // For now, estimate based on total interested users
-        max(0, (reactions.count + comments.count) - attendeeCount)
-    }
-    
-    var body: some View {
-        ScrollView {
-            LazyVStack(spacing: DesignSystem.Spacing.xl) {
-                // Event Header with Cover Image
-                EventHeaderView(event: event, host: host)
-                
-                // RSVP Section - Most Important!
-                RSVPSectionView(
-                    userRSVPStatus: $userRSVPStatus,
-                    attendeeCount: attendeeCount,
-                    notAttendingCount: notAttendingCount,
-                    onRSVPTap: handleRSVP
-                )
-                .padding(.horizontal, DesignSystem.Spacing.xl)
-                
-                // Event Details
-                EventDetailsView(event: event)
-                    .padding(.horizontal, DesignSystem.Spacing.xl)
-                
-                // Attendee Preview
-                AttendeePreviewView(
-                    attendees: Array(attendees.prefix(6)),
-                    totalCount: attendeeCount,
-                    onViewAll: { showingAttendeeList = true }
-                )
-                .padding(.horizontal, DesignSystem.Spacing.xl)
-                
-                // Event Photos
-                if !eventPhotos.isEmpty {
-                    EventPhotosView(photos: eventPhotos)
-                }
-                
-                // Social Interactions
-                SocialInteractionsView(
-                    reactions: reactions,
-                    commentCount: comments.count,
-                    onReaction: handleReaction,
-                    onComment: { showingComments = true },
-                    onShare: shareEvent
-                )
-                .padding(.horizontal, DesignSystem.Spacing.xl)
-                
-                // Action Buttons
-                ActionButtonsView(
-                    onAddToCalendar: addToCalendar,
-                    onShare: shareEvent
-                )
-                .padding(.horizontal, DesignSystem.Spacing.xl)
-                
-                Spacer(minLength: DesignSystem.Spacing.huge)
-            }
-            .padding(.top, DesignSystem.Spacing.lg)
-        }
-        .background(DesignSystem.Colors.background)
-        .navigationTitle("Event Details")
-        .navigationBarTitleDisplayMode(.inline)
-        .task {
-            await loadEventData()
-        }
-        .refreshable {
-            await loadEventData()
-        }
-        .sheet(isPresented: $showingComments) {
-            CommentsView(
-                eventId: event.id,
-                comments: comments,
-                newComment: $newComment,
-                onSubmitComment: handleNewComment
-            )
-        }
-        .sheet(isPresented: $showingAttendeeList) {
-            AttendeeListView(attendees: attendees, event: event)
-                .environmentObject(userStore)
-        }
-        .alert("Calendar", isPresented: $showingCalendarAlert) {
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text(calendarError ?? "Added to Calendar")
-        }
-    }
-    
-    // MARK: - Data Loading
-    private func loadEventData() async {
-        guard let currentUserId = currentUser?.id else { return }
-        
-        isLoading = true
-        defer { isLoading = false }
-        
-        let api = AppContainer.shared.api
-        
-        async let rsvpStatus = api.getUserRSVPStatus(eventId: event.id, userId: currentUserId)
-        async let eventAttendees = api.getEventAttendees(eventId: event.id)
-        async let eventReactions = api.getReactions(for: event.id)
-        async let eventComments = api.getComments(for: event.id)
-        async let photos = api.getEventPhotos(for: event.id)
-        
-        do {
-            userRSVPStatus = await rsvpStatus
-            attendees = await eventAttendees
-            reactions = await eventReactions
-            comments = await eventComments
-            eventPhotos = await photos
-        }
-    }
-    
-    // MARK: - RSVP Handling
-    private func handleRSVP(_ status: RSVPStatus) {
-        guard let currentUserId = currentUser?.id else { return }
-        
-        Task {
-            let api = AppContainer.shared.api
-            await api.rsvpToEvent(eventId: event.id, userId: currentUserId, status: status)
-            
-            // Update local state
-            userRSVPStatus = status
-            
-            // Reload attendee data
-            attendees = await api.getEventAttendees(eventId: event.id)
-        }
-    }
-    
-    // MARK: - Reaction Handling
-    private func handleReaction(_ type: ReactionType) {
-        guard let currentUserId = currentUser?.id else { return }
-        
-        Task {
-            let api = AppContainer.shared.api
-            let reaction = Reaction(
-                userId: currentUserId,
-                eventId: event.id,
-                type: type
-            )
-            await api.addReaction(reaction)
-            reactions = await api.getReactions(for: event.id)
-        }
-    }
-    
-    // MARK: - Comment Handling
-    private func handleNewComment() {
-        guard let currentUserId = currentUser?.id, !newComment.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
-        
-        Task {
-            let api = AppContainer.shared.api
-            let comment = Comment(
-                eventId: event.id,
-                userId: currentUserId,
-                content: newComment.trimmingCharacters(in: .whitespacesAndNewlines)
-            )
-            await api.addComment(comment)
-            comments = await api.getComments(for: event.id)
-            newComment = ""
-        }
-    }
-    
-    // MARK: - Other Actions
-    private func addToCalendar() {
-        Task {
-            do {
-                try await eventStore.addToCalendar(event: event)
-                calendarError = nil
-            } catch {
-                calendarError = error.localizedDescription
-            }
-            showingCalendarAlert = true
-        }
-    }
-    
-    private func shareEvent() {
-        // TODO: Implement share functionality
-        print("Share event: \(event.title)")
-    }
-}
-
 // MARK: - Event Header View
 struct EventHeaderView: View {
     let event: Event
@@ -339,7 +137,7 @@ struct RSVPSectionView: View {
                     icon: "questionmark.circle.fill",
                     status: .maybe,
                     currentStatus: userRSVPStatus,
-                    count: 0,
+                    count: 0, // Maybe count would need separate tracking
                     onTap: { onRSVPTap(.maybe) }
                 )
                 
@@ -460,19 +258,45 @@ struct EventDetailsView: View {
             
             // Event Details Grid
             VStack(spacing: DesignSystem.Spacing.md) {
-                EventDetailRowForDetailView(
+                EventDetailRow(
                     icon: "calendar",
                     title: "Date & Time",
-                    value: "\(event.startDate.formatted(date: .abbreviated, time: .shortened)) - \(event.endDate.formatted(date: .omitted, time: .shortened))",
+                    value: "\(event.startDate.formatted(date: .abbreviated, time: .shortened)) - \(event.endDate.formatted(time: .shortened))",
                     color: DesignSystem.Colors.primary
                 )
                 
-                EventDetailRowForDetailView(
+                EventDetailRow(
                     icon: "location",
                     title: "Location",
                     value: event.location,
                     color: DesignSystem.Colors.accent
                 )
+                
+                if event.maxAttendees != nil {
+                    EventDetailRow(
+                        icon: "person.3",
+                        title: "Capacity",
+                        value: "\(event.attendeeIds.count)/\(event.maxAttendees!) attendees",
+                        color: DesignSystem.Colors.warning
+                    )
+                }
+                
+                if !event.tags.isEmpty {
+                    VStack(alignment: .leading, spacing: DesignSystem.Spacing.sm) {
+                        HStack {
+                            Image(systemName: "tag")
+                                .foregroundColor(DesignSystem.Colors.textTertiary)
+                                .frame(width: 20)
+                            Text("Tags")
+                                .font(DesignSystem.Typography.bodyMedium)
+                                .foregroundColor(DesignSystem.Colors.text)
+                            Spacer()
+                        }
+                        
+                        ModernChipsView(chips: event.tags)
+                            .padding(.leading, 28)
+                    }
+                }
             }
         }
         .padding(.all, DesignSystem.Spacing.xl)
@@ -480,7 +304,7 @@ struct EventDetailsView: View {
     }
 }
 
-struct EventDetailRowForDetailView: View {
+struct EventDetailRow: View {
     let icon: String
     let title: String
     let value: String
@@ -506,7 +330,7 @@ struct EventDetailRowForDetailView: View {
     }
 }
 
-// MARK: - Simple Component Views for EventDetailView
+// MARK: - Attendee Preview View
 struct AttendeePreviewView: View {
     let attendees: [User]
     let totalCount: Int
@@ -533,24 +357,44 @@ struct AttendeePreviewView: View {
                     Image(systemName: "person.2")
                         .font(.title)
                         .foregroundColor(DesignSystem.Colors.textTertiary)
+                    
                     Text("No one's going yet")
                         .font(DesignSystem.Typography.body)
                         .foregroundColor(DesignSystem.Colors.textSecondary)
+                    
+                    Text("Be the first to RSVP!")
+                        .font(DesignSystem.Typography.caption)
+                        .foregroundColor(DesignSystem.Colors.textTertiary)
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, DesignSystem.Spacing.xl)
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: DesignSystem.Spacing.md) {
-                        ForEach(attendees.prefix(6), id: \.id) { user in
-                            VStack(spacing: DesignSystem.Spacing.xs) {
-                                AvatarView(data: user.avatarData, size: 50)
-                                Text(user.fullName.components(separatedBy: " ").first ?? "")
-                                    .font(DesignSystem.Typography.caption)
-                                    .foregroundColor(DesignSystem.Colors.textSecondary)
-                                    .lineLimit(1)
+                        ForEach(attendees, id: \.id) { user in
+                            AttendeeAvatarView(user: user)
+                        }
+                        
+                        if totalCount > attendees.count {
+                            Button(action: onViewAll) {
+                                VStack(spacing: DesignSystem.Spacing.xs) {
+                                    ZStack {
+                                        Circle()
+                                            .fill(DesignSystem.Colors.secondaryBackground)
+                                            .frame(width: 60, height: 60)
+                                        
+                                        Text("+\(totalCount - attendees.count)")
+                                            .font(DesignSystem.Typography.captionMedium)
+                                            .foregroundColor(DesignSystem.Colors.primary)
+                                    }
+                                    
+                                    Text("More")
+                                        .font(DesignSystem.Typography.caption)
+                                        .foregroundColor(DesignSystem.Colors.textSecondary)
+                                        .lineLimit(1)
+                                }
                             }
-                            .frame(width: 60)
+                            .buttonStyle(PlainButtonStyle())
                         }
                     }
                     .padding(.horizontal, DesignSystem.Spacing.sm)
@@ -562,6 +406,27 @@ struct AttendeePreviewView: View {
     }
 }
 
+struct AttendeeAvatarView: View {
+    let user: User
+    
+    var body: some View {
+        VStack(spacing: DesignSystem.Spacing.xs) {
+            AvatarView(data: user.avatarData, size: 60)
+                .overlay(
+                    Circle()
+                        .stroke(DesignSystem.Colors.success, lineWidth: 2)
+                )
+            
+            Text(user.fullName.components(separatedBy: " ").first ?? "")
+                .font(DesignSystem.Typography.caption)
+                .foregroundColor(DesignSystem.Colors.textSecondary)
+                .lineLimit(1)
+        }
+        .frame(width: 70)
+    }
+}
+
+// MARK: - Event Photos View
 struct EventPhotosView: View {
     let photos: [EventPhoto]
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 2), count: 3)
@@ -579,22 +444,7 @@ struct EventPhotosView: View {
             
             LazyVGrid(columns: columns, spacing: 2) {
                 ForEach(Array(photos.prefix(9)), id: \.id) { photo in
-                    Group {
-                        if let imageData = photo.imageData, let uiImage = UIImage(data: imageData) {
-                            Image(uiImage: uiImage)
-                                .resizable()
-                                .aspectRatio(1, contentMode: .fill)
-                                .clipped()
-                        } else {
-                            Rectangle()
-                                .fill(DesignSystem.Colors.secondaryBackground)
-                                .aspectRatio(1, contentMode: .fit)
-                                .overlay(
-                                    Image(systemName: "photo")
-                                        .foregroundColor(DesignSystem.Colors.textSecondary)
-                                )
-                        }
-                    }
+                    EventPhotoThumbnail(photo: photo, showOverlay: photos.firstIndex(where: { $0.id == photo.id }) == 8 && photos.count > 9, remainingCount: photos.count - 9)
                 }
             }
             .cornerRadius(DesignSystem.CornerRadius.md)
@@ -603,6 +453,47 @@ struct EventPhotosView: View {
     }
 }
 
+struct EventPhotoThumbnail: View {
+    let photo: EventPhoto
+    let showOverlay: Bool
+    let remainingCount: Int
+    
+    var body: some View {
+        Group {
+            if let imageData = photo.imageData, let uiImage = UIImage(data: imageData) {
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .aspectRatio(1, contentMode: .fill)
+                    .clipped()
+            } else {
+                Rectangle()
+                    .fill(DesignSystem.Colors.secondaryBackground)
+                    .aspectRatio(1, contentMode: .fit)
+                    .overlay(
+                        Image(systemName: "photo")
+                            .foregroundColor(DesignSystem.Colors.textSecondary)
+                    )
+            }
+        }
+        .overlay(
+            Group {
+                if showOverlay && remainingCount > 0 {
+                    ZStack {
+                        Rectangle()
+                            .fill(.black.opacity(0.6))
+                        
+                        Text("+\(remainingCount)")
+                            .font(DesignSystem.Typography.title2)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                    }
+                }
+            }
+        )
+    }
+}
+
+// MARK: - Social Interactions View
 struct SocialInteractionsView: View {
     let reactions: [Reaction]
     let commentCount: Int
@@ -612,55 +503,36 @@ struct SocialInteractionsView: View {
     
     var body: some View {
         VStack(spacing: DesignSystem.Spacing.lg) {
+            // Reaction Summary
+            if !reactions.isEmpty {
+                ReactionSummaryView(reactions: reactions)
+            }
+            
+            // Action Buttons
             HStack(spacing: DesignSystem.Spacing.xl) {
-                Button(action: { onReaction(.like) }) {
-                    HStack(spacing: DesignSystem.Spacing.xs) {
-                        Image(systemName: "heart")
-                            .font(.title3)
-                            .foregroundColor(DesignSystem.Colors.love)
-                        Text("Like")
-                            .font(DesignSystem.Typography.captionMedium)
-                            .foregroundColor(DesignSystem.Colors.text)
-                        if !reactions.isEmpty {
-                            Text("\(reactions.count)")
-                                .font(DesignSystem.Typography.caption)
-                                .foregroundColor(DesignSystem.Colors.textSecondary)
-                        }
-                    }
-                    .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(PlainButtonStyle())
+                SocialActionButton(
+                    icon: "heart",
+                    title: "Like",
+                    count: reactions.filter { $0.type == .like }.count,
+                    color: DesignSystem.Colors.love,
+                    action: { onReaction(.like) }
+                )
                 
-                Button(action: onComment) {
-                    HStack(spacing: DesignSystem.Spacing.xs) {
-                        Image(systemName: "bubble.right")
-                            .font(.title3)
-                            .foregroundColor(DesignSystem.Colors.primary)
-                        Text("Comment")
-                            .font(DesignSystem.Typography.captionMedium)
-                            .foregroundColor(DesignSystem.Colors.text)
-                        if commentCount > 0 {
-                            Text("\(commentCount)")
-                                .font(DesignSystem.Typography.caption)
-                                .foregroundColor(DesignSystem.Colors.textSecondary)
-                        }
-                    }
-                    .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(PlainButtonStyle())
+                SocialActionButton(
+                    icon: "bubble.right",
+                    title: "Comment",
+                    count: commentCount,
+                    color: DesignSystem.Colors.primary,
+                    action: onComment
+                )
                 
-                Button(action: onShare) {
-                    HStack(spacing: DesignSystem.Spacing.xs) {
-                        Image(systemName: "square.and.arrow.up")
-                            .font(.title3)
-                            .foregroundColor(DesignSystem.Colors.accent)
-                        Text("Share")
-                            .font(DesignSystem.Typography.captionMedium)
-                            .foregroundColor(DesignSystem.Colors.text)
-                    }
-                    .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(PlainButtonStyle())
+                SocialActionButton(
+                    icon: "square.and.arrow.up",
+                    title: "Share",
+                    count: 0,
+                    color: DesignSystem.Colors.accent,
+                    action: onShare
+                )
             }
         }
         .padding(.all, DesignSystem.Spacing.xl)
@@ -668,48 +540,115 @@ struct SocialInteractionsView: View {
     }
 }
 
+struct ReactionSummaryView: View {
+    let reactions: [Reaction]
+    
+    private var reactionCounts: [ReactionType: Int] {
+        Dictionary(grouping: reactions, by: \.type)
+            .mapValues { $0.count }
+    }
+    
+    var body: some View {
+        HStack(spacing: DesignSystem.Spacing.md) {
+            ForEach(ReactionType.allCases.filter { reactionCounts[$0, default: 0] > 0 }, id: \.self) { type in
+                HStack(spacing: DesignSystem.Spacing.xs) {
+                    Text(type.emoji)
+                        .font(.title3)
+                    
+                    Text("\(reactionCounts[type, default: 0])")
+                        .font(DesignSystem.Typography.bodyMedium)
+                        .foregroundColor(DesignSystem.Colors.textSecondary)
+                }
+            }
+            
+            Spacer()
+        }
+    }
+}
+
+struct SocialActionButton: View {
+    let icon: String
+    let title: String
+    let count: Int
+    let color: Color
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: DesignSystem.Spacing.xs) {
+                Image(systemName: icon)
+                    .font(.title3)
+                    .foregroundColor(color)
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                        .font(DesignSystem.Typography.captionMedium)
+                        .foregroundColor(DesignSystem.Colors.text)
+                    
+                    if count > 0 {
+                        Text("\(count)")
+                            .font(DesignSystem.Typography.caption)
+                            .foregroundColor(DesignSystem.Colors.textSecondary)
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+}
+
+// MARK: - Action Buttons View
 struct ActionButtonsView: View {
     let onAddToCalendar: () -> Void
     let onShare: () -> Void
     
     var body: some View {
         HStack(spacing: DesignSystem.Spacing.md) {
-            Button(action: onAddToCalendar) {
-                HStack(spacing: DesignSystem.Spacing.sm) {
-                    Image(systemName: "calendar.badge.plus")
-                        .font(.title3)
-                    Text("Add to Calendar")
-                        .font(DesignSystem.Typography.bodyMedium)
-                }
-                .foregroundColor(.white)
-                .padding(.vertical, DesignSystem.Spacing.md)
-                .frame(maxWidth: .infinity)
-                .background(
-                    RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.lg)
-                        .fill(DesignSystem.Colors.primary)
-                )
-            }
+            ActionButton(
+                title: "Add to Calendar",
+                icon: "calendar.badge.plus",
+                color: DesignSystem.Colors.primary,
+                action: onAddToCalendar
+            )
             
-            Button(action: onShare) {
-                HStack(spacing: DesignSystem.Spacing.sm) {
-                    Image(systemName: "square.and.arrow.up")
-                        .font(.title3)
-                    Text("Share Event")
-                        .font(DesignSystem.Typography.bodyMedium)
-                }
-                .foregroundColor(.white)
-                .padding(.vertical, DesignSystem.Spacing.md)
-                .frame(maxWidth: .infinity)
-                .background(
-                    RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.lg)
-                        .fill(DesignSystem.Colors.accent)
-                )
+            ActionButton(
+                title: "Share Event",
+                icon: "square.and.arrow.up",
+                color: DesignSystem.Colors.accent,
+                action: onShare
+            )
+        }
+    }
+}
+
+struct ActionButton: View {
+    let title: String
+    let icon: String
+    let color: Color
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: DesignSystem.Spacing.sm) {
+                Image(systemName: icon)
+                    .font(.title3)
+                Text(title)
+                    .font(DesignSystem.Typography.bodyMedium)
             }
+            .foregroundColor(.white)
+            .padding(.vertical, DesignSystem.Spacing.md)
+            .frame(maxWidth: .infinity)
+            .background(
+                RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.lg)
+                    .fill(color)
+            )
         }
         .buttonStyle(PlainButtonStyle())
     }
 }
 
+// MARK: - Comments View
 struct CommentsView: View {
     let eventId: UUID
     let comments: [Comment]
@@ -721,36 +660,21 @@ struct CommentsView: View {
     var body: some View {
         NavigationView {
             VStack {
+                // Comments List
                 ScrollView {
                     LazyVStack(spacing: DesignSystem.Spacing.md) {
                         ForEach(comments, id: \.id) { comment in
-                            HStack(alignment: .top, spacing: DesignSystem.Spacing.md) {
-                                Circle()
-                                    .fill(DesignSystem.Colors.secondaryBackground)
-                                    .frame(width: 36, height: 36)
-                                VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
-                                    HStack {
-                                        Text("User")
-                                            .font(DesignSystem.Typography.bodyMedium)
-                                        Spacer()
-                                        Text(comment.createdAt.timeAgoDisplay())
-                                            .font(DesignSystem.Typography.caption)
-                                            .foregroundColor(DesignSystem.Colors.textSecondary)
-                                    }
-                                    Text(comment.content)
-                                        .font(DesignSystem.Typography.body)
-                                        .foregroundColor(DesignSystem.Colors.textSecondary)
-                                }
-                                Spacer()
-                            }
+                            CommentRowView(comment: comment)
                         }
                     }
                     .padding(.all, DesignSystem.Spacing.xl)
                 }
                 
+                // Comment Input
                 HStack(spacing: DesignSystem.Spacing.md) {
                     TextField("Add a comment...", text: $newComment)
                         .textFieldStyle(.roundedBorder)
+                    
                     Button("Post") {
                         onSubmitComment()
                     }
@@ -766,6 +690,45 @@ struct CommentsView: View {
     }
 }
 
+struct CommentRowView: View {
+    let comment: Comment
+    
+    var body: some View {
+        HStack(alignment: .top, spacing: DesignSystem.Spacing.md) {
+            // User avatar placeholder
+            Circle()
+                .fill(DesignSystem.Colors.secondaryBackground)
+                .frame(width: 36, height: 36)
+                .overlay(
+                    Text("U")
+                        .font(DesignSystem.Typography.captionMedium)
+                        .foregroundColor(DesignSystem.Colors.textSecondary)
+                )
+            
+            VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
+                HStack {
+                    Text("User")
+                        .font(DesignSystem.Typography.bodyMedium)
+                        .foregroundColor(DesignSystem.Colors.text)
+                    
+                    Spacer()
+                    
+                    Text(comment.createdAt.timeAgoDisplay())
+                        .font(DesignSystem.Typography.caption)
+                        .foregroundColor(DesignSystem.Colors.textSecondary)
+                }
+                
+                Text(comment.content)
+                    .font(DesignSystem.Typography.body)
+                    .foregroundColor(DesignSystem.Colors.textSecondary)
+            }
+            
+            Spacer()
+        }
+    }
+}
+
+// MARK: - Attendee List View
 struct AttendeeListView: View {
     let attendees: [User]
     let event: Event
@@ -778,14 +741,19 @@ struct AttendeeListView: View {
                 ForEach(attendees, id: \.id) { user in
                     HStack(spacing: DesignSystem.Spacing.md) {
                         AvatarView(data: user.avatarData, size: 50)
+                        
                         VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
                             Text(user.fullName)
                                 .font(DesignSystem.Typography.bodyMedium)
+                                .foregroundColor(DesignSystem.Colors.text)
+                            
                             Text("@\(user.username)")
                                 .font(DesignSystem.Typography.caption)
                                 .foregroundColor(DesignSystem.Colors.textSecondary)
                         }
+                        
                         Spacer()
+                        
                         if user.id == event.hostId {
                             Text("Host")
                                 .font(DesignSystem.Typography.caption)

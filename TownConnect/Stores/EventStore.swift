@@ -12,9 +12,19 @@ final class EventStore: ObservableObject {
     private let authService = AuthService()
 
     func bootstrap(with api: MockAPIService, userStore: UserStore) async {
-        // Keep backward compatibility for now
-        // This will be replaced when we fully migrate
-        await bootstrapWithSupabase(userStore: userStore)
+        // Try Supabase first, fallback to MockAPI for development
+        do {
+            await bootstrapWithSupabase(userStore: userStore)
+            
+            // If we have no events from Supabase, load from MockAPI
+            if events.isEmpty {
+                print("No Supabase events found, loading from MockAPI")
+                await bootstrapWithMockAPI(api: api, userStore: userStore)
+            }
+        } catch {
+            print("Bootstrap with Supabase failed, using MockAPI: \(error)")
+            await bootstrapWithMockAPI(api: api, userStore: userStore)
+        }
     }
     
     func bootstrapWithSupabase(userStore: UserStore) async {
@@ -70,8 +80,18 @@ final class EventStore: ObservableObject {
             
             events.append(savedEvent)
             events.sort(by: { $0.startDate < $1.startDate })
+            print("✅ Event created successfully with Supabase: \(savedEvent.title)")
         } catch {
-            print("Error creating event: \(error)")
+            print("❌ Supabase failed, falling back to MockAPI: \(error)")
+            
+            // Fallback to MockAPIService for development
+            let mockAPI = api ?? AppContainer.shared.api
+            let savedEvent = await mockAPI.createEvent(event)
+            
+            events.append(savedEvent)
+            events.sort(by: { $0.startDate < $1.startDate })
+            
+            print("✅ Event created successfully with MockAPI: \(savedEvent.title)")
         }
     }
     
@@ -114,10 +134,18 @@ final class EventStore: ObservableObject {
             events.append(savedEvent)
             events.sort(by: { $0.startDate < $1.startDate })
             
-            print("✅ Event created successfully: \(savedEvent.title)")
+            print("✅ Event created successfully with Supabase: \(savedEvent.title)")
         } catch {
-            print("❌ Error creating enhanced event: \(error)")
-            // Add user-friendly error handling here
+            print("❌ Supabase failed, falling back to MockAPI: \(error)")
+            
+            // Fallback to MockAPIService for development
+            let mockAPI = AppContainer.shared.api
+            let savedEvent = await mockAPI.createEvent(event)
+            
+            events.append(savedEvent)
+            events.sort(by: { $0.startDate < $1.startDate })
+            
+            print("✅ Event created successfully with MockAPI: \(savedEvent.title)")
         }
     }
     
@@ -248,5 +276,19 @@ final class EventStore: ObservableObject {
     func reset() {
         events = []
         invites = []
+    }
+    
+    // MARK: - MockAPI Bootstrap (Development fallback)
+    func bootstrapWithMockAPI(api: MockAPIService, userStore: UserStore) async {
+        print("Bootstrapping EventStore with MockAPI")
+        let allEvents = await api.getAllEvents()
+        events = allEvents.sorted(by: { $0.startDate < $1.startDate })
+        
+        if let currentUser = userStore.currentUser {
+            let userInvites = await api.getInvites(for: currentUser.id)
+            invites = userInvites
+        }
+        
+        print("✅ Loaded \(events.count) events and \(invites.count) invites from MockAPI")
     }
 }
