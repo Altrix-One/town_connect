@@ -168,19 +168,21 @@ struct ModernEventCard: View {
         VStack(alignment: .leading, spacing: DesignSystem.Spacing.lg) {
             // Event Header
             HStack(spacing: DesignSystem.Spacing.md) {
-                // Host Avatar
-                AvatarView(data: host?.avatarData)
-                    .frame(width: 40, height: 40)
-                    .clipShape(Circle())
-                
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(host?.fullName ?? "Unknown Host")
-                        .font(DesignSystem.Typography.bodyMedium)
-                        .foregroundColor(DesignSystem.Colors.text)
+                // Host Avatar and Info
+                HStack(spacing: DesignSystem.Spacing.md) {
+                    AvatarView(data: host?.avatarData)
+                        .frame(width: 40, height: 40)
+                        .clipShape(Circle())
                     
-                    Text(event.startDate.timeAgoDisplay())
-                        .font(DesignSystem.Typography.caption)
-                        .foregroundColor(DesignSystem.Colors.textSecondary)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(host?.fullName ?? "Unknown Host")
+                            .font(DesignSystem.Typography.bodyMedium)
+                            .foregroundColor(DesignSystem.Colors.text)
+                        
+                        Text(event.startDate.timeAgoDisplay())
+                            .font(DesignSystem.Typography.caption)
+                            .foregroundColor(DesignSystem.Colors.textSecondary)
+                    }
                 }
                 
                 Spacer()

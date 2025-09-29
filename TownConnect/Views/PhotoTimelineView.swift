@@ -1,10 +1,13 @@
 import SwiftUI
+import PhotosUI
 
 struct PhotoTimelineView: View {
     let event: Event
     @EnvironmentObject var socialAPI: SocialAPIService
     @State private var eventPhotos: [EventPhoto] = []
     @State private var isLoading = false
+    @State private var selectedPhotos: [PhotosPickerItem] = []
+    @State private var showingPhotoPicker = false
     @State private var showingPhotoSharing = false
     
     var body: some View {
@@ -306,28 +309,130 @@ struct PhotoDetailView: View {
 struct PhotoSharingSheetView: View {
     let event: Event
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject var socialAPI: SocialAPIService
+    
+    @State private var selectedPhotos: [PhotosPickerItem] = []
+    @State private var caption = ""
+    @State private var isUploading = false
+    @State private var showingPhotoPicker = false
     
     var body: some View {
         NavigationStack {
-            VStack {
-                Text("Photo Sharing Feature")
-                    .font(DesignSystem.Typography.title2)
-                
-                Text("Take or select photos to share with event attendees")
-                    .font(DesignSystem.Typography.body)
-                    .foregroundColor(DesignSystem.Colors.textSecondary)
-                    .multilineTextAlignment(.center)
-                    .padding()
-                
-                Button("Close") {
-                    dismiss()
+            VStack(spacing: DesignSystem.Spacing.xl) {
+                // Header
+                VStack(spacing: DesignSystem.Spacing.md) {
+                    Image(systemName: "camera.fill")
+                        .font(.system(size: 48))
+                        .foregroundColor(DesignSystem.Colors.primary)
+                    
+                    Text("Share Event Photo")
+                        .font(DesignSystem.Typography.title2)
+                        .foregroundColor(DesignSystem.Colors.text)
+                    
+                    Text("Capture and share your favorite moments from \(event.title)")
+                        .font(DesignSystem.Typography.body)
+                        .foregroundColor(DesignSystem.Colors.textSecondary)
+                        .multilineTextAlignment(.center)
                 }
-                .buttonStyle(PrimaryButtonStyle())
-                .padding()
+                .padding(.top, DesignSystem.Spacing.xl)
+                
+                Spacer()
+                
+                // Action Buttons
+                VStack(spacing: DesignSystem.Spacing.lg) {
+                    // Photos Picker Button
+                    PhotosPicker(
+                        selection: $selectedPhotos,
+                        maxSelectionCount: 5,
+                        matching: .images
+                    ) {
+                        HStack {
+                            Image(systemName: "photo.on.rectangle")
+                            Text("Select from Photos")
+                        }
+                        .font(DesignSystem.Typography.bodyMedium)
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, DesignSystem.Spacing.lg)
+                        .background(DesignSystem.Colors.primary)
+                        .cornerRadius(DesignSystem.CornerRadius.lg)
+                    }
+                    
+                    // Camera Button (placeholder - would need UIImagePickerController)
+                    Button {
+                        // TODO: Implement camera functionality
+                    } label: {
+                        HStack {
+                            Image(systemName: "camera.fill")
+                            Text("Take Photo")
+                        }
+                        .font(DesignSystem.Typography.bodyMedium)
+                        .foregroundColor(DesignSystem.Colors.text)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, DesignSystem.Spacing.lg)
+                        .background(DesignSystem.Colors.secondaryBackground)
+                        .cornerRadius(DesignSystem.CornerRadius.lg)
+                    }
+                }
+                .padding(.horizontal, DesignSystem.Spacing.xl)
+                
+                Spacer()
             }
-            .padding()
+            .background(DesignSystem.Colors.background)
             .navigationTitle("Share Photo")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+        .onChange(of: selectedPhotos) { newItems in
+            handleSelectedPhotos(newItems)
+        }
+    }
+    
+    private func handleSelectedPhotos(_ items: [PhotosPickerItem]) {
+        guard !items.isEmpty else { return }
+        
+        isUploading = true
+        
+        for item in items {
+            item.loadTransferable(type: Data.self) { result in
+                DispatchQueue.main.async {
+                    switch result {
+                    case .success(let data):
+                        if let imageData = data {
+                            uploadPhoto(imageData: imageData)
+                        }
+                    case .failure(let error):
+                        print("Failed to load photo: \(error)")
+                    }
+                }
+            }
+        }
+        
+        selectedPhotos = []
+    }
+    
+    private func uploadPhoto(imageData: Data) {
+        let photo = EventPhoto(
+            eventId: event.id,
+            userId: UUID(), // TODO: Get current user ID
+            caption: caption,
+            imageData: imageData
+        )
+        
+        Task {
+            let api = AppContainer.shared.api
+            await api.uploadEventPhoto(photo)
+            
+            await MainActor.run {
+                isUploading = false
+                dismiss()
+            }
         }
     }
 }
