@@ -75,6 +75,52 @@ final class EventStore: ObservableObject {
         }
     }
     
+    func createEnhancedEvent(
+        title: String,
+        details: String,
+        location: String,
+        startDate: Date,
+        endDate: Date,
+        hostId: UUID,
+        category: EventCategory = .community,
+        maxAttendees: Int? = nil,
+        tags: [String] = [],
+        coverImageData: Data? = nil
+    ) async {
+        let event = Event(
+            id: UUID(),
+            title: title,
+            details: details,
+            location: location,
+            startDate: startDate,
+            endDate: endDate,
+            hostId: hostId,
+            attendeeIds: [hostId],
+            coverImageData: coverImageData,
+            category: category,
+            maxAttendees: maxAttendees,
+            tags: tags
+        )
+        
+        do {
+            let savedEvent: Event = try await supabase.client
+                .from("events")
+                .insert(event)
+                .select()
+                .single()
+                .execute()
+                .value
+            
+            events.append(savedEvent)
+            events.sort(by: { $0.startDate < $1.startDate })
+            
+            print("✅ Event created successfully: \(savedEvent.title)")
+        } catch {
+            print("❌ Error creating enhanced event: \(error)")
+            // Add user-friendly error handling here
+        }
+    }
+    
     func updateEvent(_ event: Event) async {
         do {
             let updatedEvent: Event = try await supabase.client

@@ -17,9 +17,7 @@ struct ProfileView: View {
                         VStack(spacing: DesignSystem.Spacing.lg) {
                             // Avatar with status indicator
                             ZStack {
-                                AvatarView(data: me.avatarData)
-                                    .frame(width: 120, height: 120)
-                                    .clipShape(Circle())
+                                AvatarView(data: me.avatarData, size: 120)
                                     .designSystemShadow(DesignSystem.Shadows.medium)
                                 
                                 // Online status indicator
@@ -145,30 +143,6 @@ struct ProfileView: View {
     }
 }
 
-struct AvatarView: View {
-    let data: Data?
-    var body: some View {
-        if let data, let ui = UIImage(data: data) {
-            Image(uiImage: ui)
-                .resizable()
-                .scaledToFill()
-        } else {
-            ZStack {
-                Circle()
-                    .fill(
-                        LinearGradient(
-                            colors: [DesignSystem.Colors.primary, DesignSystem.Colors.primaryLight],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                Image(systemName: "person.fill")
-                    .font(.system(size: 40))
-                    .foregroundColor(.white)
-            }
-        }
-    }
-}
 
 struct ModernChipsView: View {
     let chips: [String]
@@ -213,7 +187,7 @@ struct StatCard: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, DesignSystem.Spacing.lg)
-        .cardStyle()
+        .modernCardStyle()
     }
 }
 

@@ -54,8 +54,9 @@ struct EventsView: View {
             }
             .sheet(isPresented: $showingCreate) {
                 if let me = userStore.currentUser {
-                    CreateEventView(hostId: me.id)
+                    EnhancedCreateEventView(hostId: me.id)
                         .environmentObject(eventStore)
+                        .environmentObject(userStore)
                 }
             }
         }

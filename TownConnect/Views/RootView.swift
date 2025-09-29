@@ -131,8 +131,8 @@ struct OnboardingFlowView: View {
 }
 
 // Notification extension for onboarding flow
-extension Notification.Name {
-    static let userTypeSelected = Notification.Name("userTypeSelected")
+extension Foundation.Notification.Name {
+    static let userTypeSelected = Foundation.Notification.Name("userTypeSelected")
 }
 
 #Preview {

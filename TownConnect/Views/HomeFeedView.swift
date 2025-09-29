@@ -53,7 +53,7 @@ struct HomeFeedView: View {
                         EmptyFeedView()
                             .padding(.horizontal, DesignSystem.Spacing.xl)
                     } else {
-                        LazyVStack(spacing: DesignSystem.Spacing.md) {
+                        LazyVStack(spacing: DesignSystem.Spacing.lg) {
                             ForEach(feedEvents) { event in
                                 NavigationLink(value: event.id) {
                                     ModernEventCard(event: event, userStore: userStore)
@@ -152,7 +152,7 @@ struct StatItem: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, DesignSystem.Spacing.lg)
-        .cardStyle()
+        .modernCardStyle()
     }
 }
 
