@@ -21,10 +21,12 @@
 		3B2FD306AF4926E0EB403490 /* TownConnectApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6DF43D3DEFE83F8235FCF75 /* TownConnectApp.swift */; };
 		3C30BB94D8CE13BAAAF9C84A /* ExploreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C968890208CFF3600F42B52 /* ExploreView.swift */; };
 		5ADFB5486153FA1388E5A89A /* Follow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26C1F6CB990EB70A16521F56 /* Follow.swift */; };
+		5F090E2B27D8F7FE143EEA8B /* SuperuserCreator.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAE5D7B2346619D99F27B568 /* SuperuserCreator.swift */; };
 		5FDF79C697506184D8135875 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 684332275D3C04327FD1B89B /* AuthService.swift */; };
 		6252246901B7BE6C6ACDC1FB /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27D5B148D3DEC0D0154F5F91 /* DesignSystem.swift */; };
 		66F98F169EE0DF781822CE8E /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9268146308557C7B80A9E9CA /* RootView.swift */; };
 		685E07F22FB5D9CA3A23F743 /* EventsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F4008EDBDDE4B7BB11A638E /* EventsViewModel.swift */; };
+		6D738BD44133E5CF243E1512 /* SuperuserCreationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2903455FD86D3F09492BE1BE /* SuperuserCreationView.swift */; };
 		718AD0864517E736EDCA1A28 /* EmailVerificationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3CD47A0164A557E79612789 /* EmailVerificationView.swift */; };
 		778B9A0215218A256FFE840A /* AppContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1371270C38A14F783D4E032B /* AppContainer.swift */; };
 		813070ACCEE0603A26E395BE /* ForgotPasswordView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 181904590412594F4E581E63 /* ForgotPasswordView.swift */; };
@@ -67,6 +69,7 @@
 		2645ABA28B61EDA2E038401B /* SupabaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseService.swift; sourceTree = "<group>"; };
 		26C1F6CB990EB70A16521F56 /* Follow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Follow.swift; sourceTree = "<group>"; };
 		27D5B148D3DEC0D0154F5F91 /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
+		2903455FD86D3F09492BE1BE /* SuperuserCreationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SuperuserCreationView.swift; sourceTree = "<group>"; };
 		2A04A89F2F6DB3DC99B8C08E /* ProfileViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewModel.swift; sourceTree = "<group>"; };
 		2A8E50185D9A3D8F7BB4A1F1 /* EventsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventsView.swift; sourceTree = "<group>"; };
 		2F4008EDBDDE4B7BB11A638E /* EventsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventsViewModel.swift; sourceTree = "<group>"; };
@@ -92,6 +95,7 @@
 		E45A854CFE0F0D2380E44873 /* UserTypeSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserTypeSelectionView.swift; sourceTree = "<group>"; };
 		F2396FAC4F04D5939E35E168 /* ProfileCompletionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileCompletionView.swift; sourceTree = "<group>"; };
 		F5377F9E25EF38F4F5546309 /* EditProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfileView.swift; sourceTree = "<group>"; };
+		FAE5D7B2346619D99F27B568 /* SuperuserCreator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SuperuserCreator.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -134,6 +138,14 @@
 				CA5682C8AC791AD103742268 /* MockAPIServiceTests.swift */,
 			);
 			path = TownConnectTests;
+			sourceTree = "<group>";
+		};
+		61136D7FEDDD12C9E5C8D61E /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				FAE5D7B2346619D99F27B568 /* SuperuserCreator.swift */,
+			);
+			path = Utilities;
 			sourceTree = "<group>";
 		};
 		70400FB084C34DC72FE3000F /* ViewModels */ = {
@@ -214,10 +226,19 @@
 				F52C704603AAD28EF054A7BE /* Resources */,
 				1E4D83E8CBD9737706EFE5FF /* Services */,
 				732048C4947EF08C4A402110 /* Stores */,
+				61136D7FEDDD12C9E5C8D61E /* Utilities */,
 				70400FB084C34DC72FE3000F /* ViewModels */,
 				F7B04DEC017684B8F51A5D3D /* Views */,
 			);
 			path = TownConnect;
+			sourceTree = "<group>";
+		};
+		E4BB42DAC2B173FC3B7E1756 /* Development */ = {
+			isa = PBXGroup;
+			children = (
+				2903455FD86D3F09492BE1BE /* SuperuserCreationView.swift */,
+			);
+			path = Development;
 			sourceTree = "<group>";
 		};
 		F52C704603AAD28EF054A7BE /* Resources */ = {
@@ -241,6 +262,7 @@
 				2059417CED5799ACB6697081 /* ProfileView.swift */,
 				9268146308557C7B80A9E9CA /* RootView.swift */,
 				A540ABFA8102F9CDB79CD708 /* Auth */,
+				E4BB42DAC2B173FC3B7E1756 /* Development */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -369,6 +391,8 @@
 				967B6C433BE8A4EF43AADA98 /* RootTabView.swift in Sources */,
 				66F98F169EE0DF781822CE8E /* RootView.swift in Sources */,
 				F0028B64FE1070CCAC6ABDC1 /* SupabaseService.swift in Sources */,
+				6D738BD44133E5CF243E1512 /* SuperuserCreationView.swift in Sources */,
+				5F090E2B27D8F7FE143EEA8B /* SuperuserCreator.swift in Sources */,
 				3B2FD306AF4926E0EB403490 /* TownConnectApp.swift in Sources */,
 				8C9A7BC3EC98A85911CC9F3D /* User.swift in Sources */,
 				DFE5AE80553BCD32E4A65224 /* UserStore.swift in Sources */,
